@@ -87,6 +87,25 @@ app.post("/getcustomer1", (req, res) =>{
     res.send(results.rows);
   })
 })
+app.post("/getaccount", (req, res) =>{
+	//console.log("Test values in services req values :", req);
+	//console.log("Test values in services res values :", res);
+  db.execute("select USER_NAME as USERNAME,USER_BUSINESSNAME as BUSINESSNAME,USER_EMAIL as EMAIL,USER_ADDRESS as ADDRESS from MS_USERS", (error, results) => {
+    if (error) throw error;
+    res.send(results.rows);
+  })
+})
+
+app.post("/getaccount1", (req, res) =>{
+	//	console.log("Test values in services req values :", req);
+	//console.log("Test values in services res values :", res);
+	const useremail=req.body.useremail;
+	
+db.execute("select * from MS_USERS where USER_EMAIL=:useremail", [useremail],(error, results) => {
+    if (error) throw error;
+    res.send(results.rows);
+  })
+})
 
 app.post("/deleteproduct", (req, res) =>{
 	
@@ -98,7 +117,7 @@ db.execute("delete from products where prod_id=:id",[productid], (error, results
 	 db.execute("commit");
     res.send(results.rows);
   })
-}) 
+})
 
 
 app.post("/deletecustomer1", (req, res) =>{
@@ -137,7 +156,7 @@ db.execute("update products set prod_name=:name,prod_price=:price,prod_qty=:qty,
   })
 })
 app.post("/updatecustomer1", (req, res) =>{
-	console.log("Test values in services req values :", req);
+	
   const customername = req.body.name;
   const customerphnumber = req.body.mobile;
   const customeremail = req.body.email;
@@ -236,7 +255,7 @@ app.post("/createcustomer1", (req, res) => {
   // console.log("Test values in services res values :", res);
 
   db.execute(
-    "INSERT INTO CUSTOMER(CUST_ID,CUST_NAME,CUST_PHNUMBER,CUST_EMAIL)VALUES(CUST_IDS.NEXTVAL,:custName,:custPhNumber,:custEmail)",
+    "INSERT INTO CUSTOMER(CUST_ID,CUST_NAME,CUST_PHNUMBER,CUST_EMAIL)VALUES(CUST_IDSS.NEXTVAL,:custName,:custPhNumber,:custEmail)",
     [
 	
 	customername,
@@ -256,42 +275,117 @@ app.post("/createcustomer1", (req, res) => {
   );
 });
 
+app.post("/login1", (req, res) => {
 
+  const useremail = req.body.email;
+  const userpassword = req.body.password;
+  
+ db.execute(
+    "select CASE WHEN count(1) > 0 THEN 'True' ELSE 'False' END AS userAvailable from MS_USERS where user_email = :userEmail and user_password = :userPassword",
+    [
+	
+	useremail,
+	userpassword
+	
+	
+    ],
+    (err, result) => {
+       //Aconsole.log("Test values in services :", name);
+      if (err) {
+        console.log("There is error ", err + result);
+      } else {
+		  db.execute("commit");
+         res.send(result.rows);
+      }
+    }
+  );
+});
 
-app.get("/stichfulldata", (req, res) => {
-  // Connecting to the database.
-  // Executing the MySQL query (select all data from the 'users' table)
-  // db.query("select * from react_schema.stichpad", (error, results) => {
-    db.execute("select stich_id,stich_name ,stich_gender ,to_date(stich_creatdate,'mm/dd/yyyy') as stich_creatdate ,to_date(stich_closdate,'mm/dd/yyyy') as stich_closdate ,stich_neck ,stich_chest ,stich_stomach ,stich_belly ,stich_sidecut ,stich_tophght ,stich_waist ,stich_hip ,stich_thigh ,stich_lthigh ,stich_ankle ,stich_desc,dummy1,stich_status from stichpad", (error, results) => {
-    // If some error occurs, we throw an error.
-    if (error) throw error;
-    // Getting the 'response' from the database and sending it to our route. This is were the data is.
-    res.send(results.rows);
-  });
+app.post("/checkforusername", (req, res) => {
+
+  const useremail = req.body.emailId;
+  db.execute(
+    "select CASE WHEN count(1) > 0 THEN 'True' ELSE 'False' END AS userAvailable from MS_USERS where user_email = :userEmail",
+    [
+	useremail
+	],
+    (err, result) => {
+       //Aconsole.log("Test values in services :", name);
+      if (err) {
+        console.log("There is error ", err + result);
+      } else {
+		  db.execute("commit");
+         res.send(result.rows);
+      }
+    }
+  );
 });
 
 
-app.post("/getMaxId", (req, res) =>{
-  db.execute("select max(stich_id) as stichid from stichpad", (error, results) => {
-    if (error) throw error;
-    res.send(results.rows);
-  })
+app.post("/registerUser", (req, res) => {
+ 
+  const useremail = req.body.useremail;
+  const userpassword = req.body.userpassword;
+  const userbusinessname =req.body.userbusinessname;
+  const username = req.body.username;
+  const useraddress = req.body.useraddress;
+  
+  
+ db.execute("INSERT INTO MS_USERS(USER_ID,USER_EMAIL,USER_PASSWORD,USER_STATUS,USER_BUSINESSNAME,USER_NAME ,USER_ADDRESS)VALUES(USERID_S.NEXTVAL,:userEmail,:userPassword,'Active',:userBusName,:userName,:userAddress)",
+    [
+	
+	useremail,
+	userpassword,
+	userbusinessname,
+	username,
+	useraddress
+	
+    ],
+    (err, result) => {
+     
+      if (err) {
+        console.log("There is error ", err + result);
+      } else {
+		  db.execute("commit");
+        res.send("values inserted in Oracle db : "+username);
+      }
+    }
+  );
 });
 
-app.post("/getStatusChart", (req, res) =>{
-  db.execute("select MyStatusChart as chartData from dual", (error, results) => {
-    if (error) throw error;
-    res.send(results);
-  })
+app.post("/addBill", (req, res) => {
+ console.log('Id Value in service req : ', req);
+ console.log('Id Value in service req : ', req.body.lineItems);
+ 
+ 
+  const useremail = req.body.useremail;
+  const userpassword = req.body.userpassword;
+  const userbusinessname =req.body.userbusinessname;
+  const username = req.body.username;
+  const useraddress = req.body.useraddress;
+  
+  
+ db.execute("INSERT INTO MS_USERS(USER_ID,USER_EMAIL,USER_PASSWORD,USER_STATUS,USER_BUSINESSNAME,USER_NAME ,USER_ADDRESS)VALUES(USERID_S.NEXTVAL,:userEmail,:userPassword,'Active',:userBusName,:userName,:userAddress)",
+    [
+	
+	useremail,
+	userpassword,
+	userbusinessname,
+	username,
+	useraddress
+	
+    ],
+    (err, result) => {
+     
+      if (err) {
+        console.log("There is error ", err + result);
+      } else {
+		  db.execute("commit");
+        res.send("values inserted in Oracle db : "+username);
+      }
+    }
+  );
 });
-
-app.post("/getStatusChartProps", (req, res) =>{
-  db.execute("select MyStatusChart1 as chartData1 from dual", (error, results) => {
-    if (error) throw error;
-    res.send(results);
-  })
-});
-
 
 app.post("/getDataOnId", (req, res) => {
   
